@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* ===============================
+   Theme variables
+   =============================== */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===============================
+   Betta background animation
+   =============================== */
+@keyframes bettaSwim {
+  0%   { transform: translateX(-35vw) translateY(0); }
+  25%  { transform: translateX(10vw) translateY(-10px); }
+  50%  { transform: translateX(55vw) translateY(8px); }
+  75%  { transform: translateX(95vw) translateY(-6px); }
+  100% { transform: translateX(135vw) translateY(0); }
+}
+
+.animate-betta-swim {
+  animation-name: bettaSwim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+  /* เพิ่มเพื่อความลื่นและไม่บัง UI */
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* ===============================
+   Bubble effect (optional)
+   =============================== */
+@keyframes bubble {
+  0%   { transform: translateY(0); opacity: 0.1; }
+  30%  { opacity: 0.35; }
+  100% { transform: translateY(-120px); opacity: 0; }
+}
+
+.animate-bubble {
+  animation: bubble 6s ease-in infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
