@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // มี token แล้วให้ไปหน้าแรก (อัปโหลด/วิเคราะห์)
+  // มี token แล้วให้ไปหน้าแรก
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) router.replace("/");
@@ -42,7 +42,12 @@ export default function RegisterPage() {
     try {
       const r = await fetch(`${API}/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // ✅ สำคัญมาก (แก้ปัญหา Safari / iOS)
+        credentials: "include",
+        mode: "cors",
         body: JSON.stringify({ email, password }),
       });
 
@@ -53,16 +58,16 @@ export default function RegisterPage() {
         return;
       }
 
-      // ถ้า backend ส่ง token กลับมา ก็เข้าใช้งานต่อได้เลย
+      // ถ้า backend ส่ง token กลับมา
       if (j?.token) {
         localStorage.setItem("token", j.token);
         router.replace("/");
         return;
       }
 
-      // ถ้าไม่ส่ง token ให้ไป login
+      // ไม่ส่ง token → ไป login
       router.replace("/login");
-    } catch {
+    } catch (err) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
     } finally {
       setLoading(false);
@@ -78,12 +83,18 @@ export default function RegisterPage() {
         <h1 className="text-2xl font-bold text-center text-indigo-700 mb-1">
           BettaFish Register
         </h1>
+
+        {/* 🔴 DEPLOY CHECK */}
+        <p className="text-center text-xs text-red-600 mb-2">
+          DEPLOY CHECK v3 – FETCH + CORS FIX
+        </p>
+
         <p className="text-center text-sm text-gray-700 mb-4">
           สมัครสมาชิกเพื่อใช้งานบันทึกและดูประวัติ
         </p>
 
         <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900 placeholder:text-gray-400"
+          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -91,7 +102,7 @@ export default function RegisterPage() {
         />
 
         <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900 placeholder:text-gray-400"
+          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
           type="password"
           placeholder="Password (อย่างน้อย 6 ตัว)"
           value={password}
@@ -100,7 +111,7 @@ export default function RegisterPage() {
         />
 
         <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900 placeholder:text-gray-400"
+          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
           type="password"
           placeholder="Confirm Password"
           value={confirm}
@@ -109,7 +120,9 @@ export default function RegisterPage() {
         />
 
         {error && (
-          <div className="text-red-600 font-semibold text-sm mb-2">{error}</div>
+          <div className="text-red-600 font-semibold text-sm mb-2">
+            {error}
+          </div>
         )}
 
         <button
