@@ -84,11 +84,6 @@ export default function RegisterPage() {
           BettaFish Register
         </h1>
 
-        {/* 🔴 DEPLOY CHECK */}
-        <p className="text-center text-xs text-red-600 mb-2">
-          DEPLOY CHECK v3 – FETCH + CORS FIX
-        </p>
-
         <p className="text-center text-sm text-gray-700 mb-4">
           สมัครสมาชิกเพื่อใช้งานบันทึกและดูประวัติ
         </p>

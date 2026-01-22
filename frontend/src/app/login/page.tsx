@@ -104,7 +104,6 @@ export default function LoginPage() {
           ยังไม่มีบัญชี? สมัครสมาชิก
         </button>
 
-        <div className="text-xs text-gray-700 mt-3">API: {API}</div>
       </form>
     </main>
   );
