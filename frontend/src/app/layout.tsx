@@ -1,4 +1,4 @@
-import BettaBackground from "@/components/BettaBackground";
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -7,17 +7,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
-      <body className="relative min-h-screen overflow-hidden">
-        {/* พื้นหลังสี / gradient */}
-        <div className="fixed inset-0 z-0 bg-white" />
-
-        {/* ปลากัด (background layer) */}
-        <BettaBackground />
-
-        {/* เนื้อหาจริง (login / popup) */}
-        <main className="relative z-20 min-h-screen flex items-center justify-center">
-          {children}
-        </main>
+      <body className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center">
+        {children}
       </body>
     </html>
   );

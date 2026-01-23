@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_BASE!; // ต้องเป็น .../api
+const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // มี token แล้วให้ไปหน้าแรก
+  // มี token แล้ว → ไปหน้าแรก
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) router.replace("/");
@@ -45,7 +45,6 @@ export default function RegisterPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        // ✅ สำคัญมาก (แก้ปัญหา Safari / iOS)
         credentials: "include",
         mode: "cors",
         body: JSON.stringify({ email, password }),
@@ -58,7 +57,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // ถ้า backend ส่ง token กลับมา
+      // backend ส่ง token → เข้าใช้งานได้เลย
       if (j?.token) {
         localStorage.setItem("token", j.token);
         router.replace("/");
@@ -67,7 +66,7 @@ export default function RegisterPage() {
 
       // ไม่ส่ง token → ไป login
       router.replace("/login");
-    } catch (err) {
+    } catch {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
     } finally {
       setLoading(false);
@@ -75,70 +74,97 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
+    <section className="w-full">
       <form
         onSubmit={submit}
-        className="bg-white/90 backdrop-blur rounded-2xl shadow p-8 w-full max-w-md"
+        className="bg-white rounded-2xl shadow-xl px-8 py-10 space-y-6"
       >
-        <h1 className="text-2xl font-bold text-center text-indigo-700 mb-1">
-          BettaFish Register
-        </h1>
+        {/* Header */}
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-semibold text-indigo-700 tracking-wide">
+            BettaFish
+          </h1>
+          <p className="text-sm text-gray-600">
+            สมัครสมาชิกเพื่อบันทึกและดูประวัติการวิเคราะห์
+          </p>
+        </div>
 
-        <p className="text-center text-sm text-gray-700 mb-4">
-          สมัครสมาชิกเพื่อใช้งานบันทึกและดูประวัติ
-        </p>
+        {/* Inputs */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              className="w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
 
-        <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              className="w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="อย่างน้อย 6 ตัวอักษร"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+            />
+          </div>
 
-        <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
-          type="password"
-          placeholder="Password (อย่างน้อย 6 ตัว)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="new-password"
-        />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              className="w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="ยืนยันรหัสผ่าน"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              autoComplete="new-password"
+            />
+          </div>
+        </div>
 
-        <input
-          className="w-full border rounded p-2 mb-3 bg-white text-gray-900"
-          type="password"
-          placeholder="Confirm Password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          autoComplete="new-password"
-        />
-
+        {/* Error */}
         {error && (
-          <div className="text-red-600 font-semibold text-sm mb-2">
+          <div className="text-sm text-red-600 font-medium text-center">
             {error}
           </div>
         )}
 
+        {/* Action */}
         <button
           disabled={loading}
-          className={`w-full rounded p-2 text-white ${
-            loading ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
+          className={`w-full rounded-xl py-2.5 font-semibold text-white transition
+            ${
+              loading
+                ? "bg-indigo-400"
+                : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]"
+            }`}
         >
           {loading ? "กำลังสมัคร..." : "สมัครสมาชิก"}
         </button>
 
-        <button
-          type="button"
-          onClick={() => router.push("/login")}
-          className="w-full mt-3 border rounded p-2 text-gray-900 bg-white hover:bg-gray-50"
-        >
-          มีบัญชีแล้ว? ไปหน้าเข้าสู่ระบบ
-        </button>
-
-        <div className="text-xs text-gray-700 mt-3">API: {API}</div>
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-600">
+          มีบัญชีแล้ว?{" "}
+          <button
+            type="button"
+            onClick={() => router.push("/login")}
+            className="text-indigo-600 font-medium hover:underline"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </div>
       </form>
-    </main>
+    </section>
   );
 }
