@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
-export default function HomePage() {
+type Msg = {
+  role: "user" | "ai";
+  text: string;
+};
+
+export default function AnalyzeChatPage() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
 
@@ -13,28 +18,24 @@ export default function HomePage() {
   const [preview, setPreview] = useState("");
   const [result, setResult] = useState<any>(null);
 
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     const t = localStorage.getItem("token");
-    if (!t) {
-      router.replace("/login");
-      return;
-    }
+    if (!t) return router.replace("/login");
     setToken(t);
   }, [router]);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    router.replace("/login");
-  };
-
+  // วิเคราะห์รูปก่อน
   const analyze = async () => {
-    if (!token || !file) return;
+    if (!file || !token) return;
 
     setLoading(true);
-    setError("");
+    setMessages([]);
+    setResult(null);
 
     try {
       const fd = new FormData();
@@ -47,38 +48,50 @@ export default function HomePage() {
       });
 
       const j = await r.json();
-      if (!r.ok) throw new Error(j?.error || "analyze_failed");
+      if (!r.ok) throw new Error("analyze_failed");
 
-      setResult(j);
-    } catch (e: any) {
-      setError(e.message || "วิเคราะห์ไม่สำเร็จ");
+      setResult(j.result);
     } finally {
       setLoading(false);
     }
   };
 
+  // ส่งคำถามแชท
+  const sendChat = async () => {
+    if (!input.trim() || !token || !result) return;
+
+    const question = input;
+    setInput("");
+    setMessages((m) => [...m, { role: "user", text: question }]);
+    setChatLoading(true);
+
+    try {
+      const r = await fetch(`${API}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question,
+          context: result, // 🔑 ส่งผลวิเคราะห์ไปให้ AI
+        }),
+      });
+
+      const j = await r.json();
+      if (!r.ok) throw new Error("chat_failed");
+
+      setMessages((m) => [...m, { role: "ai", text: j.answer }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   return (
-    <main className="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-6">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-indigo-600">
-          BettaFish Classifier
-        </h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push("/records")}
-            className="border rounded-lg px-3 py-1 text-sm hover:bg-gray-50"
-          >
-            Records
-          </button>
-          <button
-            onClick={logout}
-            className="border rounded-lg px-3 py-1 text-sm hover:bg-gray-50"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+    <main className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6">
+      <h1 className="text-xl font-bold text-indigo-600 mb-4">
+        Chat วิเคราะห์ปลากัด
+      </h1>
 
       {/* Upload */}
       <input
@@ -87,61 +100,79 @@ export default function HomePage() {
         onChange={(e) => {
           const f = e.target.files?.[0] || null;
           setFile(f);
-          setResult(null);
-          setError("");
           setPreview(f ? URL.createObjectURL(f) : "");
+          setMessages([]);
+          setResult(null);
         }}
-        className="mb-4"
+        className="mb-3"
       />
+
+      {preview && (
+        <img
+          src={preview}
+          className="w-full max-h-[320px] object-contain rounded-xl border mb-4"
+        />
+      )}
 
       <button
         onClick={analyze}
-        disabled={loading || !file}
-        className="
-          w-full mb-6 py-2 rounded-xl text-white font-semibold
-          bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300
-        "
+        disabled={!file || loading}
+        className="w-full mb-6 py-2 rounded-xl bg-indigo-600 text-white disabled:bg-indigo-300"
       >
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* Error */}
-      {error && (
-        <div className="text-red-600 text-sm mb-4">{error}</div>
-      )}
-
-      {/* Preview */}
-      {preview && (
-        <div className="bg-slate-50 rounded-2xl p-4 mb-6 flex justify-center">
-          <img
-            src={preview}
-            className="max-h-[420px] object-contain rounded-xl shadow"
-          />
-        </div>
-      )}
-
       {/* Result */}
-      {result?.ok && (
-        <div className="grid gap-3">
-          <div className="bg-white border rounded-xl p-4">
-            <div className="text-sm text-gray-500">สายพันธุ์</div>
-            <div className="font-semibold text-indigo-600">
-              {result.result.species_name}
-            </div>
+      {result && (
+        <div className="space-y-2 mb-6">
+          <div className="border rounded-xl p-3">
+            <b>สายพันธุ์:</b> {result.species_name}
           </div>
-
-          <div className="bg-white border rounded-xl p-4">
-            <div className="text-sm text-gray-500">ลักษณะสี</div>
-            <div>{result.result.color_traits}</div>
+          <div className="border rounded-xl p-3">
+            <b>ลักษณะสี:</b> {result.color_traits}
           </div>
-
-          <div className="bg-white border rounded-xl p-4">
-            <div className="text-sm text-gray-500">คำแนะนำการเลี้ยง</div>
-            <div className="text-sm leading-relaxed">
-              {result.result.care_tips}
-            </div>
+          <div className="border rounded-xl p-3 text-sm">
+            <b>คำแนะนำ:</b> {result.care_tips}
           </div>
         </div>
+      )}
+
+      {/* Chat */}
+      {result && (
+        <>
+          <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-xl text-sm ${
+                  m.role === "user"
+                    ? "bg-indigo-600 text-white text-right"
+                    : "bg-gray-100 text-gray-900"
+                }`}
+              >
+                {m.text}
+              </div>
+            ))}
+            {chatLoading && (
+              <div className="text-sm text-gray-500">AI กำลังตอบ…</div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="ถามเรื่องปลากัด เช่น หางลีบ แก้ยังไง"
+              className="flex-1 border rounded-xl px-3 py-2 text-sm"
+            />
+            <button
+              onClick={sendChat}
+              className="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700"
+            >
+              ส่ง
+            </button>
+          </div>
+        </>
       )}
     </main>
   );
