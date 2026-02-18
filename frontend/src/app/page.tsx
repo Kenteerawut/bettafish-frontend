@@ -29,7 +29,7 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  // 🔥 วิเคราะห์ปลา
+  // ⭐ วิเคราะห์ปลา
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -43,17 +43,16 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: fd,
       });
 
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
-      // ✅ backend ใหม่ใช้ result
       setResult(j.result);
-
-      console.log("RESULT =", j.result);
     } catch (e) {
       console.error(e);
     } finally {
@@ -61,7 +60,7 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  // 🔥 CHAT
+  // ⭐ CHAT
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
@@ -130,30 +129,43 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* 🔥 RESULT PRO */}
       {result && (
         <div className="space-y-3 mb-6">
-
           <div className="border rounded-xl p-4 bg-indigo-50">
-            <b>🐟 สายพันธุ์:</b> {result.species_name}
+            🐟 <b>สายพันธุ์:</b>{" "}
+            {result.main_species_th} ({result.main_species_en})
           </div>
 
           <div className="border rounded-xl p-4">
-            <b>🎨 สี:</b> {result.color_traits}
+            🧬 <b>หมวด:</b>{" "}
+            {result.breed_category_th} ({result.breed_category_en})
           </div>
 
           <div className="border rounded-xl p-4">
-            <b>⭐ เกรด:</b> {result.grade}
+            🎨 <b>ลักษณะสี:</b> {result.color_traits}
+          </div>
+
+          <div className="border rounded-xl p-4">
+            ⭐ <b>เกรด:</b> {result.grade}
+          </div>
+
+          <div className="border rounded-xl p-4">
+            🔥 <b>ความมั่นใจ:</b> {result.confidence_score}%
+
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div
+                className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${result.confidence_score}%` }}
+              />
+            </div>
           </div>
 
           <div className="border rounded-xl p-4 text-sm leading-relaxed">
             {result.analysis}
           </div>
-
         </div>
       )}
 
-      {/* CHAT */}
       {result && (
         <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
