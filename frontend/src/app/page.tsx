@@ -43,19 +43,20 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
 
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
-      // 🔥 backend ส่ง raw
+      // 🔥 แก้ตรงนี้สำคัญมาก
+      // backend ส่ง raw กลับมา ไม่ใช่ result
       setResult(j.raw);
-    } catch (err) {
-      console.error(err);
+
+      console.log("RESULT =", j.raw);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -88,8 +89,8 @@ export default function AnalyzeChatPage() {
       if (!r.ok) throw new Error("chat_failed");
 
       setMessages((m) => [...m, { role: "ai", text: j.answer }]);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     } finally {
       setChatLoading(false);
     }
@@ -130,14 +131,16 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* ✅ RESULT จาก AI */}
+      {/* Result */}
       {result && (
-        <div className="border rounded-xl p-3 whitespace-pre-line mb-6">
-          {result.answer}
+        <div className="space-y-2 mb-6">
+          <div className="border rounded-xl p-3">
+            <b>ผลวิเคราะห์:</b> {result.answer}
+          </div>
         </div>
       )}
 
-      {/* CHAT */}
+      {/* Chat */}
       {result && (
         <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
@@ -153,7 +156,6 @@ export default function AnalyzeChatPage() {
                 {m.text}
               </div>
             ))}
-
             {chatLoading && (
               <div className="text-sm text-gray-500">AI กำลังตอบ…</div>
             )}
