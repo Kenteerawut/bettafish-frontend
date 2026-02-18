@@ -1,9 +1,5 @@
 import "./globals.css";
-
-export const metadata = {
-  title: "BettaFish",
-  description: "BettaFish Classifier",
-};
+import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
   children,
@@ -12,17 +8,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
-      <body className="min-h-screen">
-        {/* Background image */}
-        <div
-          className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/betta-bg.png')" }}
-        />
+      <body
+        className="
+        bg-gradient-to-br
+        from-indigo-100
+        via-purple-50
+        to-pink-100
+        min-h-screen
+        "
+      >
+        <Navbar />
 
-        {/* Dark overlay (ช่วยให้ตัวอักษรอ่านง่าย) */}
-        <div className="fixed inset-0 -z-10 bg-black/40" />
-
-        {children}
+        <div className="pt-20">
+          {children}
+        </div>
       </body>
     </html>
   );
