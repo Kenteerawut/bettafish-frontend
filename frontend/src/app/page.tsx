@@ -29,7 +29,7 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  // วิเคราะห์รูปก่อน
+  // ✅ วิเคราะห์รูป
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -43,25 +43,31 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: fd,
       });
 
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
-      setResult(j.result);
+      // 🔥 backend ส่ง raw
+      setResult(j.raw);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ส่งคำถามแชท
+  // ✅ ส่งคำถาม chat
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
     const question = input;
     setInput("");
+
     setMessages((m) => [...m, { role: "user", text: question }]);
     setChatLoading(true);
 
@@ -74,7 +80,7 @@ export default function AnalyzeChatPage() {
         },
         body: JSON.stringify({
           question,
-          context: result, // 🔑 ส่งผลวิเคราะห์ไปให้ AI
+          context: result,
         }),
       });
 
@@ -82,6 +88,8 @@ export default function AnalyzeChatPage() {
       if (!r.ok) throw new Error("chat_failed");
 
       setMessages((m) => [...m, { role: "ai", text: j.answer }]);
+    } catch (err) {
+      console.error(err);
     } finally {
       setChatLoading(false);
     }
@@ -122,22 +130,14 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* Result */}
+      {/* ✅ RESULT จาก AI */}
       {result && (
-        <div className="space-y-2 mb-6">
-          <div className="border rounded-xl p-3">
-            <b>สายพันธุ์:</b> {result.species_name}
-          </div>
-          <div className="border rounded-xl p-3">
-            <b>ลักษณะสี:</b> {result.color_traits}
-          </div>
-          <div className="border rounded-xl p-3 text-sm">
-            <b>คำแนะนำ:</b> {result.care_tips}
-          </div>
+        <div className="border rounded-xl p-3 whitespace-pre-line mb-6">
+          {result.answer}
         </div>
       )}
 
-      {/* Chat */}
+      {/* CHAT */}
       {result && (
         <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
@@ -153,6 +153,7 @@ export default function AnalyzeChatPage() {
                 {m.text}
               </div>
             ))}
+
             {chatLoading && (
               <div className="text-sm text-gray-500">AI กำลังตอบ…</div>
             )}
