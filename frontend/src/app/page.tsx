@@ -29,7 +29,7 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  // ✅ วิเคราะห์รูป
+  // 🔥 วิเคราะห์ปลา
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -50,11 +50,10 @@ export default function AnalyzeChatPage() {
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
-      // 🔥 แก้ตรงนี้สำคัญมาก
-      // backend ส่ง raw กลับมา ไม่ใช่ result
-      setResult(j.raw);
+      // ✅ backend ใหม่ใช้ result
+      setResult(j.result);
 
-      console.log("RESULT =", j.raw);
+      console.log("RESULT =", j.result);
     } catch (e) {
       console.error(e);
     } finally {
@@ -62,7 +61,7 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  // ✅ ส่งคำถาม chat
+  // 🔥 CHAT
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
@@ -131,16 +130,30 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* Result */}
+      {/* 🔥 RESULT PRO */}
       {result && (
-        <div className="space-y-2 mb-6">
-          <div className="border rounded-xl p-3">
-            <b>ผลวิเคราะห์:</b> {result.answer}
+        <div className="space-y-3 mb-6">
+
+          <div className="border rounded-xl p-4 bg-indigo-50">
+            <b>🐟 สายพันธุ์:</b> {result.species_name}
           </div>
+
+          <div className="border rounded-xl p-4">
+            <b>🎨 สี:</b> {result.color_traits}
+          </div>
+
+          <div className="border rounded-xl p-4">
+            <b>⭐ เกรด:</b> {result.grade}
+          </div>
+
+          <div className="border rounded-xl p-4 text-sm leading-relaxed">
+            {result.analysis}
+          </div>
+
         </div>
       )}
 
-      {/* Chat */}
+      {/* CHAT */}
       {result && (
         <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
