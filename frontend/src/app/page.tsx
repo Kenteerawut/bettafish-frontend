@@ -94,10 +94,8 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  const speciesTH = result?.main_species_th || "-";
-  const speciesEN = result?.main_species_en || "-";
-  const categoryTH = result?.breed_category_th || "-";
-  const categoryEN = result?.breed_category_en || "-";
+  const speciesTH = result?.breed_category_th || "-";
+  const speciesEN = result?.breed_category_en || "-";
   const color = result?.color_traits || "-";
   const grade = result?.grade || "-";
   const analysis = result?.analysis || "-";
@@ -145,16 +143,9 @@ export default function AnalyzeChatPage() {
       {result && (
         <div className="space-y-3 mb-6">
 
-          {/* ⭐ เปลี่ยนเป็นเชิงวิชาการ */}
+          {/* ⭐ สายพันธุ์ (ใช้ category แทน) */}
           <div className="border rounded-xl p-4 bg-indigo-50">
-            🐟 <b>คาดว่าน่าจะเป็นสายพันธุ์:</b> {speciesTH} ({speciesEN})
-            <div className="text-xs text-gray-500 mt-1">
-              * เป็นการประเมินจากลักษณะภายนอกของปลา (Morphology) ไม่ใช่การยืนยันสายพันธุ์แท้
-            </div>
-          </div>
-
-          <div className="border rounded-xl p-4">
-            🧬 <b>กลุ่มการเลี้ยง:</b> {categoryTH} ({categoryEN})
+            🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
           </div>
 
           <div className="border rounded-xl p-4">
