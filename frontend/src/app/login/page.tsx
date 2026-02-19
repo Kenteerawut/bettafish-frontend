@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // มี token แล้ว → ไปหน้าแรก
+  // มี token แล้ว → เด้งหน้าแรก
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) router.replace("/");
@@ -54,83 +54,73 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-purple-100 px-4">
+
+      {/* CARD */}
       <form
         onSubmit={submit}
-        className="bg-white rounded-2xl shadow-xl px-8 py-10 space-y-6"
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 border"
       >
-        {/* Header */}
+        {/* HEADER */}
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-semibold text-indigo-700 tracking-wide">
-            BettaFish
+          <h1 className="text-3xl font-bold text-indigo-700">
+            Betta AI
           </h1>
-          <p className="text-sm text-gray-600">
-            เข้าสู่ระบบเพื่อวิเคราะห์และบันทึกข้อมูลปลากัด
+          <p className="text-sm text-gray-500">
+            ระบบวิเคราะห์สายพันธุ์ปลากัดอัจฉริยะ
           </p>
         </div>
 
-        {/* Inputs */}
+        {/* INPUTS */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              className="w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </div>
+          <input
+            className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              className="w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </div>
+          <input
+            type="password"
+            className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
 
-        {/* Error */}
+        {/* ERROR */}
         {error && (
-          <div className="text-sm text-red-600 font-medium text-center">
+          <div className="text-sm text-red-600 text-center font-medium">
             {error}
           </div>
         )}
 
-        {/* Action */}
+        {/* LOGIN BUTTON */}
         <button
           disabled={loading}
           className={`w-full rounded-xl py-2.5 font-semibold text-white transition
-            ${
-              loading
-                ? "bg-indigo-400"
-                : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]"
-            }`}
+          ${
+            loading
+              ? "bg-indigo-400"
+              : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]"
+          }`}
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
         </button>
 
-        {/* Footer */}
+        {/* FOOTER */}
         <div className="text-center text-sm text-gray-600">
           ยังไม่มีบัญชี?{" "}
           <button
             type="button"
             onClick={() => router.push("/register")}
-            className="text-indigo-600 font-medium hover:underline"
+            className="text-indigo-600 font-semibold hover:underline"
           >
             สมัครสมาชิก
           </button>
         </div>
       </form>
-    </section>
+    </div>
   );
 }
