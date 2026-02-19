@@ -29,7 +29,7 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  // ⭐ วิเคราะห์ปลา
+  // วิเคราะห์ปลา
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -52,8 +52,6 @@ export default function AnalyzeChatPage() {
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
-      console.log("🔥 RESULT =", j.result);
-
       setResult(j.result);
     } catch (e) {
       console.error(e);
@@ -62,7 +60,7 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  // ⭐ CHAT
+  // CHAT
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
@@ -96,7 +94,6 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  // ⭐ กัน undefined จาก AI
   const speciesTH = result?.main_species_th || "-";
   const speciesEN = result?.main_species_en || "-";
   const categoryTH = result?.breed_category_th || "-";
@@ -116,7 +113,6 @@ export default function AnalyzeChatPage() {
         Chat วิเคราะห์ปลากัด
       </h1>
 
-      {/* Upload */}
       <input
         type="file"
         accept="image/*"
@@ -148,24 +144,29 @@ export default function AnalyzeChatPage() {
       {/* RESULT */}
       {result && (
         <div className="space-y-3 mb-6">
+
+          {/* ⭐ เปลี่ยนเป็นเชิงวิชาการ */}
           <div className="border rounded-xl p-4 bg-indigo-50">
-            🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
+            🐟 <b>คาดว่าน่าจะเป็นสายพันธุ์:</b> {speciesTH} ({speciesEN})
+            <div className="text-xs text-gray-500 mt-1">
+              * เป็นการประเมินจากลักษณะภายนอกของปลา (Morphology) ไม่ใช่การยืนยันสายพันธุ์แท้
+            </div>
           </div>
 
           <div className="border rounded-xl p-4">
-            🧬 <b>หมวด:</b> {categoryTH} ({categoryEN})
+            🧬 <b>กลุ่มการเลี้ยง:</b> {categoryTH} ({categoryEN})
           </div>
 
           <div className="border rounded-xl p-4">
-            🎨 <b>ลักษณะสี:</b> {color}
+            🎨 <b>ลักษณะทางสัณฐาน:</b> {color}
           </div>
 
           <div className="border rounded-xl p-4">
-            ⭐ <b>เกรด:</b> {grade}
+            ⭐ <b>ระดับคุณภาพ (Grade):</b> {grade}
           </div>
 
           <div className="border rounded-xl p-4">
-            🔥 <b>ความมั่นใจ:</b> {confidence}%
+            🔥 <b>ความมั่นใจของโมเดล:</b> {confidence}%
 
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
@@ -178,6 +179,7 @@ export default function AnalyzeChatPage() {
           <div className="border rounded-xl p-4 text-sm leading-relaxed">
             {analysis}
           </div>
+
         </div>
       )}
 
