@@ -52,6 +52,8 @@ export default function AnalyzeChatPage() {
       const j = await r.json();
       if (!r.ok) throw new Error("analyze_failed");
 
+      console.log("🔥 RESULT =", j.result);
+
       setResult(j.result);
     } catch (e) {
       console.error(e);
@@ -94,6 +96,20 @@ export default function AnalyzeChatPage() {
     }
   };
 
+  // ⭐ กัน undefined จาก AI
+  const speciesTH = result?.main_species_th || "-";
+  const speciesEN = result?.main_species_en || "-";
+  const categoryTH = result?.breed_category_th || "-";
+  const categoryEN = result?.breed_category_en || "-";
+  const color = result?.color_traits || "-";
+  const grade = result?.grade || "-";
+  const analysis = result?.analysis || "-";
+
+  const confidence =
+    typeof result?.confidence_score === "number"
+      ? Math.round(result.confidence_score)
+      : 0;
+
   return (
     <main className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6">
       <h1 className="text-xl font-bold text-indigo-600 mb-4">
@@ -129,43 +145,43 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
+      {/* RESULT */}
       {result && (
         <div className="space-y-3 mb-6">
           <div className="border rounded-xl p-4 bg-indigo-50">
-            🐟 <b>สายพันธุ์:</b>{" "}
-            {result.main_species_th} ({result.main_species_en})
+            🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
           </div>
 
           <div className="border rounded-xl p-4">
-            🧬 <b>หมวด:</b>{" "}
-            {result.breed_category_th} ({result.breed_category_en})
+            🧬 <b>หมวด:</b> {categoryTH} ({categoryEN})
           </div>
 
           <div className="border rounded-xl p-4">
-            🎨 <b>ลักษณะสี:</b> {result.color_traits}
+            🎨 <b>ลักษณะสี:</b> {color}
           </div>
 
           <div className="border rounded-xl p-4">
-            ⭐ <b>เกรด:</b> {result.grade}
+            ⭐ <b>เกรด:</b> {grade}
           </div>
 
           <div className="border rounded-xl p-4">
-            🔥 <b>ความมั่นใจ:</b> {result.confidence_score}%
+            🔥 <b>ความมั่นใจ:</b> {confidence}%
 
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
                 className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${result.confidence_score}%` }}
+                style={{ width: `${confidence}%` }}
               />
             </div>
           </div>
 
           <div className="border rounded-xl p-4 text-sm leading-relaxed">
-            {result.analysis}
+            {analysis}
           </div>
         </div>
       )}
 
+      {/* CHAT */}
       {result && (
         <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
