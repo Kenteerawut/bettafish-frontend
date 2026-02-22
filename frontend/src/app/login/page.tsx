@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
@@ -10,117 +10,144 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // มี token แล้ว → เด้งหน้าแรก
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) router.replace("/");
-  }, [router]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     setError("");
 
-    if (!email.trim() || !password.trim()) {
-      setError("กรุณากรอกอีเมลและรหัสผ่าน");
-      return;
-    }
-
-    setLoading(true);
     try {
       const r = await fetch(`${API}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email, password }),
       });
 
-      const j = await r.json().catch(() => ({}));
+      const j = await r.json();
 
       if (!r.ok) {
-        setError(j?.message || j?.error || "เข้าสู่ระบบไม่สำเร็จ");
+        setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
         return;
       }
 
       localStorage.setItem("token", j.token);
-      router.replace("/");
-    } catch {
-      setError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
-    } finally {
-      setLoading(false);
+      router.push("/analyze");
+    } catch (err) {
+      console.error(err);
+      setError("เกิดข้อผิดพลาด");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-purple-100 px-4">
+    <main
+      className="
+      relative min-h-screen
+      flex flex-col items-center justify-center
+      bg-gradient-to-br
+      from-black via-emerald-950 to-black
+      text-white overflow-hidden
+      "
+    >
+      {/* 🌫️ FOREST DEPTH ULTRA BACKGROUND */}
+      <div
+        className="
+        absolute inset-0 -z-10
+        bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.25),transparent_40%)]
+        bg-[radial-gradient(circle_at_80%_70%,rgba(34,211,238,0.15),transparent_50%)]
+        animate-[pulse_12s_ease-in-out_infinite]
+      "
+      />
 
-      {/* CARD */}
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 border"
+      {/* 🌿 CINEMATIC HEADER */}
+      <h1
+        className="
+        text-4xl md:text-5xl font-extrabold mb-10 tracking-wide
+        bg-gradient-to-r from-emerald-200 via-teal-300 to-cyan-300
+        bg-clip-text text-transparent
+        drop-shadow-[0_0_25px_rgba(45,212,191,0.8)]
+      "
       >
-        {/* HEADER */}
-        <div className="text-center space-y-1">
-          <h1 className="text-3xl font-bold text-indigo-700">
-            Betta AI
-          </h1>
-          <p className="text-sm text-gray-500">
-            ระบบวิเคราะห์สายพันธุ์ปลากัดอัจฉริยะ
-          </p>
-        </div>
+        วิเคราะห์ปลากัดด้วย AI
+      </h1>
 
-        {/* INPUTS */}
-        <div className="space-y-4">
-          <input
-            className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+      {/* 🪵 FOREST CARD */}
+      <div
+        className="
+        w-[360px] p-8
+        rounded-[30px]
+        bg-emerald-950/40
+        backdrop-blur-2xl
+        border border-emerald-400/20
+        shadow-[0_0_80px_rgba(16,185,129,0.25)]
+        text-center
+        hover:shadow-[0_0_110px_rgba(16,185,129,0.35)]
+        transition-all duration-500
+      "
+      >
+        <p className="text-emerald-200/70 text-sm mb-6">
+          ระบบวิเคราะห์สายพันธุ์ปลากัดอัจฉริยะ
+        </p>
 
-          <input
-            type="password"
-            className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          className="
+          w-full mb-3 px-4 py-2 rounded-xl
+          bg-black/40
+          border border-emerald-400/20
+          text-white
+          placeholder:text-white/40
+          outline-none
+          focus:border-emerald-300
+          focus:shadow-[0_0_10px_rgba(16,185,129,0.5)]
+        "
+        />
 
-        {/* ERROR */}
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="
+          w-full mb-3 px-4 py-2 rounded-xl
+          bg-black/40
+          border border-emerald-400/20
+          text-white
+          placeholder:text-white/40
+          outline-none
+          focus:border-emerald-300
+          focus:shadow-[0_0_10px_rgba(16,185,129,0.5)]
+        "
+        />
+
         {error && (
-          <div className="text-sm text-red-600 text-center font-medium">
-            {error}
-          </div>
+          <div className="text-red-400 text-sm mb-3">{error}</div>
         )}
 
-        {/* LOGIN BUTTON */}
+        {/* 🔥 AI BUTTON ULTRA */}
         <button
-          disabled={loading}
-          className={`w-full rounded-xl py-2.5 font-semibold text-white transition
-          ${
-            loading
-              ? "bg-indigo-400"
-              : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]"
-          }`}
+          onClick={submit}
+          className="
+          w-full py-3 rounded-2xl
+          bg-gradient-to-r from-emerald-400 to-teal-400
+          text-black font-semibold
+          hover:scale-[1.05]
+          shadow-[0_0_20px_rgba(16,185,129,0.6)]
+          transition-all duration-300
+        "
         >
-          {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+          เข้าสู่ระบบ
         </button>
 
-        {/* FOOTER */}
-        <div className="text-center text-sm text-gray-600">
-          ยังไม่มีบัญชี?{" "}
-          <button
-            type="button"
-            onClick={() => router.push("/register")}
-            className="text-indigo-600 font-semibold hover:underline"
-          >
+        <div className="text-sm text-emerald-200/70 mt-4">
+          ยังไม่มีบัญชี ?
+          <a href="/register" className="text-emerald-300 ml-1 hover:underline">
             สมัครสมาชิก
-          </button>
+          </a>
         </div>
-      </form>
-    </div>
+      </div>
+    </main>
   );
 }

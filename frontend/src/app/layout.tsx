@@ -1,5 +1,6 @@
 import "./globals.css";
-import TopBar from "@/components/TopBar";
+import Navbar from "@/components/Navbar";
+import ForestBackground from "@/components/ForestBackground";
 
 export default function RootLayout({
   children,
@@ -8,20 +9,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
-      <body
-        className="
-        bg-gradient-to-br
-        from-indigo-100
-        via-purple-50
-        to-pink-100
-        min-h-screen
-        "
-      >
-        <TopBar />
+      <body className="min-h-screen text-white bg-stone-950">
 
-        <div className="pt-20">
+        <ForestBackground />
+        <Navbar />
+
+        <main className="pt-24 relative z-10">
           {children}
-        </div>
+        </main>
+
       </body>
     </html>
   );

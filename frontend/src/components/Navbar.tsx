@@ -1,79 +1,134 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
 
-  const [token, setToken] = useState<string | null>(null);
-
+  // 🌌 FOREST DEPTH ULTRA — detect scroll
   useEffect(() => {
-    const t = localStorage.getItem("token");
-    setToken(t);
-  }, [pathname]);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 12);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
-  };
+  const menu = [
+    { name: "Analyze", href: "/analyze" },
+    { name: "Records", href: "/records" },
+  ];
 
   return (
-    <div
-      className="
-      fixed top-0 left-0 right-0 z-50
-      backdrop-blur-xl bg-white/70
-      border-b border-gray-200
-      shadow-sm
-      "
+    <nav
+      className={`
+      sticky top-0 z-50
+      backdrop-blur-xl
+      border-b border-emerald-400/20
+      transition-all duration-500
+
+      ${
+        scrolled
+          ? "bg-emerald-950/70 shadow-[0_0_35px_rgba(16,185,129,0.35)]"
+          : "bg-emerald-950/40 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+      }
+      `}
     >
-      <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
+      {/* 🌫️ forest glow layer */}
+      <div
+        className="
+        absolute inset-0 -z-10 opacity-70
+        bg-[radial-gradient(circle_at_10%_50%,rgba(16,185,129,0.25),transparent_40%)]
+        animate-[pulse_12s_ease-in-out_infinite]
+      "
+      />
 
-        {/* Logo */}
-        <div
-          onClick={() => router.push("/")}
-          className="font-bold text-indigo-600 text-lg cursor-pointer"
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+
+        {/* 🌿 LOGO — aura pulse */}
+        <Link
+          href="/"
+          className="
+          font-bold text-lg tracking-wide
+          bg-gradient-to-r from-emerald-200 via-teal-300 to-cyan-300
+          bg-clip-text text-transparent
+          drop-shadow-[0_0_10px_rgba(45,212,191,0.7)]
+          hover:scale-105
+          transition-all
+          animate-[pulse_6s_ease-in-out_infinite]
+          "
         >
-          🐟 Betta AI
-        </div>
+          BettaFish
+        </Link>
 
-        {/* Buttons */}
-        <div className="flex gap-2">
+        {/* 🌱 MENU */}
+        <div className="flex items-center gap-6 text-sm font-medium">
+          {menu.map((m) => {
+            const active = pathname.startsWith(m.href);
 
-          <button
-            onClick={() => router.back()}
-            className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
+            return (
+              <Link
+                key={m.href}
+                href={m.href}
+                className={`
+                relative px-1 py-1
+                transition-all duration-300
+
+                ${
+                  active
+                    ? "text-emerald-200"
+                    : "text-emerald-100/70 hover:text-emerald-200"
+                }
+
+                hover:drop-shadow-[0_0_8px_rgba(45,212,191,0.8)]
+                `}
+              >
+                {m.name}
+
+                {/* 🌿 active energy line */}
+                {active && (
+                  <span
+                    className="
+                    absolute -bottom-1 left-0 w-full h-[2px]
+                    bg-gradient-to-r from-emerald-300 to-teal-300
+                    rounded-full
+                    shadow-[0_0_12px_rgba(45,212,191,0.9)]
+                    "
+                  />
+                )}
+
+                {/* 🌌 depth glow on hover */}
+                <span
+                  className="
+                  absolute inset-0 rounded-lg opacity-0
+                  hover:opacity-100
+                  bg-emerald-400/10 blur-md
+                  transition-all duration-300 -z-10
+                  "
+                />
+              </Link>
+            );
+          })}
+
+          {/* 🔥 LOGOUT */}
+          <Link
+            href="/logout"
+            className="
+            px-3 py-1.5 rounded-lg
+            bg-emerald-400/20
+            text-emerald-100
+            hover:bg-emerald-400/30
+            hover:shadow-[0_0_14px_rgba(16,185,129,0.7)]
+            transition-all duration-300
+            "
           >
-            ← ย้อนกลับ
-          </button>
-
-          <button
-            onClick={() => router.push("/")}
-            className="px-3 py-1 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 text-sm"
-          >
-            หน้าแรก
-          </button>
-
-          {!token && (
-            <button
-              onClick={() => router.push("/login")}
-              className="px-3 py-1 rounded-lg bg-green-500 text-white hover:bg-green-600 text-sm"
-            >
-              Login
-            </button>
-          )}
-
-          {token && (
-            <button
-              onClick={logout}
-              className="px-3 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 text-sm"
-            >
-              Logout
-            </button>
-          )}
+            Logout
+          </Link>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
