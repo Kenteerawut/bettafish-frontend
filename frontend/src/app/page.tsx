@@ -12,14 +12,15 @@ type Msg = {
 
 export default function AnalyzeChatPage() {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
 
+  const [token, setToken] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [result, setResult] = useState<any>(null);
 
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -92,21 +93,28 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  const speciesTH = result?.breed_estimate || "-";
-  const speciesEN = result?.tail_type || "-";
-  const color = result?.short_reason || "-";
-  const grade = result?.betta_group || "-";
-  const analysis = result?.morphology || "-";
+  const species = result?.breed_estimate || "-";
+  const group = result?.betta_group || "-";
+  const morphology = result?.morphology || "-";
+  const detail = result?.short_reason || "-";
 
-  const confidence =
-    typeof result?.confidence === "number"
-      ? Math.round(result.confidence * 100)
-      : 0;
+  const rawConfidence =
+    result?.confidence ??
+    result?.confidence_score ??
+    0;
+
+  let confidence = 0;
+
+  if (typeof rawConfidence === "number") {
+    if (rawConfidence <= 1) confidence = Math.round(rawConfidence * 100);
+    else if (rawConfidence <= 100) confidence = Math.round(rawConfidence);
+    else confidence = 95;
+  }
 
   return (
     <main className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6">
       <h1 className="text-xl font-bold text-indigo-600 mb-4">
-        Chat วิเคราะห์ปลากัด
+        🧬 ระบบวิเคราะห์ปลากัดอัจฉริยะ
       </h1>
 
       <input
@@ -134,39 +142,42 @@ export default function AnalyzeChatPage() {
         disabled={!file || loading}
         className="w-full mb-6 py-2 rounded-xl bg-indigo-600 text-white disabled:bg-indigo-300"
       >
-        {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
+        {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์ปลา"}
       </button>
 
       {result && (
-        <>
-          <div className="space-y-3 mb-6">
-            <div className="border rounded-xl p-4 bg-indigo-50">
-              🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
-            </div>
-
-            <div className="border rounded-xl p-4">
-              🎨 <b>ลักษณะ:</b> {color}
-            </div>
-
-            <div className="border rounded-xl p-4">
-              ⭐ <b>กลุ่ม:</b> {grade}
-            </div>
-
-            <div className="border rounded-xl p-4">
-              🔥 <b>ความมั่นใจ:</b> {confidence}%
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div
-                  className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${confidence}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="border rounded-xl p-4 text-sm leading-relaxed">
-              {analysis}
-            </div>
+        <div className="space-y-3 mb-6">
+          <div className="border rounded-xl p-4 bg-indigo-50">
+            🐟 <b>สายพันธุ์:</b> {species}
           </div>
 
+          <div className="border rounded-xl p-4">
+            ⭐ <b>กลุ่ม:</b> {group}
+          </div>
+
+          <div className="border rounded-xl p-4">
+            🧬 <b>ลักษณะโครงสร้าง:</b> {morphology}
+          </div>
+
+          <div className="border rounded-xl p-4 text-sm leading-relaxed">
+            🎨 <b>รายละเอียด:</b> {detail}
+          </div>
+
+          <div className="border rounded-xl p-4">
+            🔥 <b>ความมั่นใจของโมเดล:</b> {confidence}%
+
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div
+                className="bg-indigo-600 h-2 rounded-full"
+                style={{ width: `${confidence}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
             {messages.map((m, i) => (
               <div
@@ -181,7 +192,9 @@ export default function AnalyzeChatPage() {
               </div>
             ))}
             {chatLoading && (
-              <div className="text-sm text-gray-500">AI กำลังตอบ…</div>
+              <div className="text-sm text-gray-500">
+                AI กำลังตอบคำถาม...
+              </div>
             )}
           </div>
 
@@ -189,7 +202,7 @@ export default function AnalyzeChatPage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="ถามเรื่องปลากัด"
+              placeholder="ถามเรื่องปลากัด เช่น หางลีบ แก้ยังไง"
               className="flex-1 border rounded-xl px-3 py-2 text-sm"
             />
             <button
