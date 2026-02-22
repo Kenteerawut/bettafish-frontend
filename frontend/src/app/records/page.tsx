@@ -7,18 +7,25 @@ const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 type FishRecord = {
   _id: string;
-  userId: string;
+  imageName?: string;
+  imageUrl?: string;
+  image?: string;
+  fileUrl?: string;
+
   fishName?: string;
   type?: string;
   color?: string;
   note?: string;
-  imageName: string;
-  imageUrl?: string;
+
+  breed_estimate?: string;
+  betta_group?: string;
+
   createdAt: string;
 };
 
 export default function RecordsPage() {
   const router = useRouter();
+
   const [rows, setRows] = useState<FishRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,10 +44,9 @@ export default function RecordsPage() {
 
     (async () => {
       try {
-        setError("");
         setLoading(true);
+        setError("");
 
-        // ✅ FIX: record → records
         const r = await fetch(`${API}/records`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,7 +61,7 @@ export default function RecordsPage() {
 
         const j = await r.json().catch(() => ({}));
         if (!r.ok) {
-          throw new Error(j?.message || j?.error || "fetch_failed");
+          throw new Error(j?.message || "fetch_failed");
         }
 
         setRows(Array.isArray(j) ? j : []);
@@ -69,91 +75,117 @@ export default function RecordsPage() {
 
   return (
     <main className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+      <div className="max-w-5xl mx-auto">
+
+        {/* HEADER */}
         <header className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-indigo-700">
-            Fish Records
+            🐟 ประวัติการวิเคราะห์ปลา
           </h1>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.push("/")}
-              className="bg-indigo-600 text-white rounded-lg px-4 py-2 hover:bg-indigo-700"
-            >
-              ไปหน้า Analyze
-            </button>
-
-            <button
-              onClick={logout}
-              className="bg-white border rounded-lg px-4 py-2 text-gray-900 hover:bg-gray-50"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-indigo-600 text-white rounded-xl px-4 py-2 hover:bg-indigo-700"
+          >
+            กลับหน้า Analyze
+          </button>
         </header>
 
-        {/* Content */}
-        <div className="bg-white rounded-2xl shadow p-4">
+        {/* CONTENT */}
+        <div className="bg-white rounded-3xl shadow-xl p-6">
           {loading && (
-            <div className="py-8 text-center text-gray-700">
+            <div className="text-center py-10 text-gray-600">
               กำลังโหลดข้อมูล...
             </div>
           )}
 
           {!loading && error && (
-            <div className="py-4 text-red-600 font-semibold text-center">
+            <div className="text-center text-red-600 font-semibold">
               {error}
             </div>
           )}
 
           {!loading && !error && rows.length === 0 && (
-            <div className="py-8 text-center text-gray-600">
+            <div className="text-center text-gray-600">
               ยังไม่มีประวัติการวิเคราะห์
             </div>
           )}
 
-          {!loading && !error && rows.length > 0 && (
-            <ul className="divide-y">
-              {rows.map((x) => (
-                <li key={x._id} className="py-4 flex gap-4">
-                  <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {x.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={x.imageUrl}
-                        alt={x.imageName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-gray-500 text-center px-2">
-                        {x.imageName}
-                      </span>
-                    )}
-                  </div>
+          {!loading && rows.length > 0 && (
+            <div className="grid md:grid-cols-2 gap-6">
+              {rows.map((x) => {
+                // ⭐ GOD DATA FALLBACK SYSTEM
+                const img =
+                  x.imageUrl ||
+                  x.image ||
+                  x.fileUrl ||
+                  "";
 
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">
-                      {x.fishName || "ไม่ระบุชื่อปลา"}
+                const species =
+                  x.breed_estimate ||
+                  x.type ||
+                  "ไม่ระบุสายพันธุ์";
+
+                const group =
+                  x.betta_group ||
+                  x.color ||
+                  "-";
+
+                return (
+                  <div
+                    key={x._id}
+                    className="rounded-2xl border bg-white shadow hover:shadow-lg transition overflow-hidden"
+                  >
+                    {/* IMAGE */}
+                    <div className="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+                      {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={img}
+                          alt={x.imageName || "fish"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-500 px-3 text-center">
+                          {x.imageName || "No Image"}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="text-sm text-gray-700">
-                      type: {x.type || "-"} | color: {x.color || "-"}
-                    </div>
+                    {/* BODY */}
+                    <div className="p-4 space-y-2">
 
-                    {x.note && (
-                      <div className="text-sm mt-1 text-gray-900">
-                        {x.note}
+                      <div className="font-semibold text-gray-900">
+                        {x.fishName || "ไม่ระบุชื่อปลา"}
                       </div>
-                    )}
 
-                    <div className="text-xs text-gray-500 mt-1">
-                      {new Date(x.createdAt).toLocaleString()}
+                      <div className="flex flex-wrap gap-2 text-xs">
+
+                        <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                          {species}
+                        </span>
+
+                        {group !== "-" && (
+                          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                            {group}
+                          </span>
+                        )}
+                      </div>
+
+                      {x.note && (
+                        <div className="text-sm text-gray-700">
+                          {x.note}
+                        </div>
+                      )}
+
+                      <div className="text-xs text-gray-400 pt-2">
+                        {new Date(x.createdAt).toLocaleString()}
+                      </div>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

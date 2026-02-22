@@ -1,5 +1,5 @@
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import TopBar from "@/components/TopBar";
 
 export default function RootLayout({
   children,
@@ -17,7 +17,7 @@ export default function RootLayout({
         min-h-screen
         "
       >
-        <Navbar />
+        <TopBar />
 
         <div className="pt-20">
           {children}
