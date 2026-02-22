@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
@@ -12,6 +12,7 @@ type Msg = {
 
 export default function AnalyzeChatPage() {
   const router = useRouter();
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [token, setToken] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -23,6 +24,13 @@ export default function AnalyzeChatPage() {
 
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
+
+  /** ============================
+   * 🔥 AUTO SCROLL CHAT
+   ============================ */
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, chatLoading]);
 
   useEffect(() => {
     const t = localStorage.getItem("token");
@@ -43,9 +51,7 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
 
@@ -93,17 +99,27 @@ export default function AnalyzeChatPage() {
     }
   };
 
+  /** ============================
+   * ⭐ FORMAT AI TEXT PRO+
+   ============================ */
+  const renderAIText = (text: string) => {
+    return text.split("\n").map((line, i) => (
+      <p key={i} className="leading-relaxed">
+        {line}
+      </p>
+    ));
+  };
+
   const species = result?.breed_estimate || "-";
   const group = result?.betta_group || "-";
   const morphology = result?.morphology || "-";
   const detail = result?.short_reason || "-";
 
+  let confidence = 0;
   const rawConfidence =
     result?.confidence ??
     result?.confidence_score ??
     0;
-
-  let confidence = 0;
 
   if (typeof rawConfidence === "number") {
     if (rawConfidence <= 1) confidence = Math.round(rawConfidence * 100);
@@ -113,8 +129,9 @@ export default function AnalyzeChatPage() {
 
   return (
     <main className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6">
+
       <h1 className="text-xl font-bold text-indigo-600 mb-4">
-        🧬 ระบบวิเคราะห์ปลากัดอัจฉริยะ
+        🧬 ระบบวิเคราะห์ปลากัด GOD LEVEL
       </h1>
 
       <input
@@ -140,7 +157,7 @@ export default function AnalyzeChatPage() {
       <button
         onClick={analyze}
         disabled={!file || loading}
-        className="w-full mb-6 py-2 rounded-xl bg-indigo-600 text-white disabled:bg-indigo-300"
+        className="w-full mb-6 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-40"
       >
         {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์ปลา"}
       </button>
@@ -164,11 +181,10 @@ export default function AnalyzeChatPage() {
           </div>
 
           <div className="border rounded-xl p-4">
-            🔥 <b>ความมั่นใจของโมเดล:</b> {confidence}%
-
+            🔥 <b>ความมั่นใจ:</b> {confidence}%
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
-                className="bg-indigo-600 h-2 rounded-full"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full"
                 style={{ width: `${confidence}%` }}
               />
             </div>
@@ -178,24 +194,29 @@ export default function AnalyzeChatPage() {
 
       {result && (
         <>
-          <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
+          <div className="space-y-3 mb-4 max-h-[340px] overflow-y-auto pr-1">
             {messages.map((m, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-xl text-sm ${
+                className={`p-4 rounded-2xl text-sm shadow-sm ${
                   m.role === "user"
-                    ? "bg-indigo-600 text-white text-right"
-                    : "bg-gray-100 text-gray-900"
+                    ? "bg-indigo-600 text-white ml-auto w-fit max-w-[85%]"
+                    : "bg-gradient-to-r from-gray-50 to-white border w-fit max-w-[85%]"
                 }`}
               >
-                {m.text}
+                {m.role === "ai"
+                  ? renderAIText(m.text)
+                  : m.text}
               </div>
             ))}
+
             {chatLoading && (
-              <div className="text-sm text-gray-500">
-                AI กำลังตอบคำถาม...
+              <div className="text-sm text-gray-500 animate-pulse">
+                🤖 AI กำลังพิมพ์คำตอบ...
               </div>
             )}
+
+            <div ref={chatEndRef} />
           </div>
 
           <div className="flex gap-2">
@@ -207,7 +228,7 @@ export default function AnalyzeChatPage() {
             />
             <button
               onClick={sendChat}
-              className="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 rounded-xl hover:opacity-90"
             >
               ส่ง
             </button>
