@@ -29,7 +29,6 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  // วิเคราะห์ปลา
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -60,7 +59,6 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  // CHAT
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
@@ -94,15 +92,15 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  const speciesTH = result?.breed_category_th || "-";
-  const speciesEN = result?.breed_category_en || "-";
-  const color = result?.color_traits || "-";
-  const grade = result?.grade || "-";
-  const analysis = result?.analysis || "-";
+  const speciesTH = result?.breed_estimate || "-";
+  const speciesEN = result?.tail_type || "-";
+  const color = result?.short_reason || "-";
+  const grade = result?.betta_group || "-";
+  const analysis = result?.morphology || "-";
 
   const confidence =
-    typeof result?.confidence_score === "number"
-      ? Math.round(result.confidence_score)
+    typeof result?.confidence === "number"
+      ? Math.round(result.confidence * 100)
       : 0;
 
   return (
@@ -139,44 +137,36 @@ export default function AnalyzeChatPage() {
         {loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ปลา"}
       </button>
 
-      {/* RESULT */}
       {result && (
-        <div className="space-y-3 mb-6">
+        <>
+          <div className="space-y-3 mb-6">
+            <div className="border rounded-xl p-4 bg-indigo-50">
+              🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
+            </div>
 
-          {/* ⭐ สายพันธุ์ (ใช้ category แทน) */}
-          <div className="border rounded-xl p-4 bg-indigo-50">
-            🐟 <b>สายพันธุ์:</b> {speciesTH} ({speciesEN})
-          </div>
+            <div className="border rounded-xl p-4">
+              🎨 <b>ลักษณะ:</b> {color}
+            </div>
 
-          <div className="border rounded-xl p-4">
-            🎨 <b>ลักษณะทางสัณฐาน:</b> {color}
-          </div>
+            <div className="border rounded-xl p-4">
+              ⭐ <b>กลุ่ม:</b> {grade}
+            </div>
 
-          <div className="border rounded-xl p-4">
-            ⭐ <b>ระดับคุณภาพ (Grade):</b> {grade}
-          </div>
+            <div className="border rounded-xl p-4">
+              🔥 <b>ความมั่นใจ:</b> {confidence}%
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div
+                  className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${confidence}%` }}
+                />
+              </div>
+            </div>
 
-          <div className="border rounded-xl p-4">
-            🔥 <b>ความมั่นใจของโมเดล:</b> {confidence}%
-
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div
-                className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${confidence}%` }}
-              />
+            <div className="border rounded-xl p-4 text-sm leading-relaxed">
+              {analysis}
             </div>
           </div>
 
-          <div className="border rounded-xl p-4 text-sm leading-relaxed">
-            {analysis}
-          </div>
-
-        </div>
-      )}
-
-      {/* CHAT */}
-      {result && (
-        <>
           <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
             {messages.map((m, i) => (
               <div
@@ -199,7 +189,7 @@ export default function AnalyzeChatPage() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="ถามเรื่องปลากัด เช่น หางลีบ แก้ยังไง"
+              placeholder="ถามเรื่องปลากัด"
               className="flex-1 border rounded-xl px-3 py-2 text-sm"
             />
             <button
