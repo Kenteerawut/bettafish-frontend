@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_BASE!;
+/**
+ * 🔥 HOTFIX PRODUCTION
+ * ห้ามใช้ env ตอนนี้ เพราะ build ไปแล้ว
+ */
+const API = "https://betta-backend-production.up.railway.app/api";
 
 type Msg = {
   role: "user" | "ai";
@@ -30,14 +34,35 @@ export default function AnalyzeChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayedMessages, chatLoading]);
 
+  /**
+   * ✅ LOAD TOKEN
+   */
   useEffect(() => {
     const t = localStorage.getItem("token");
-    if (!t) return router.replace("/login");
+    if (!t) {
+      router.replace("/login");
+      return;
+    }
     setToken(t);
   }, [router]);
 
   /**
-   * ✅ TYPEWRITER FIX — ไม่ override state
+   * ✅ PREVIEW IMAGE FIX
+   */
+  useEffect(() => {
+    if (!file) {
+      setPreview("");
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  /**
+   * ✅ TYPEWRITER SAFE
    */
   useEffect(() => {
     const last = messages[messages.length - 1];
@@ -50,8 +75,12 @@ export default function AnalyzeChatPage() {
 
     let i = 0;
 
-    // ⭐ clone ก่อนเพื่อกัน index พัง
-    setDisplayedMessages(messages.map((m) => ({ ...m, text: m.role === "ai" ? "" : m.text })));
+    setDisplayedMessages(
+      messages.map((m) => ({
+        ...m,
+        text: m.role === "ai" ? "" : m.text,
+      }))
+    );
 
     const interval = setInterval(() => {
       i++;
@@ -70,6 +99,11 @@ export default function AnalyzeChatPage() {
     return () => clearInterval(interval);
   }, [messages]);
 
+  /**
+   * ==========================
+   * 🔍 ANALYZE
+   * ==========================
+   */
   const analyze = async () => {
     if (!file || !token) return;
 
@@ -84,12 +118,18 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: fd,
       });
 
       const j = await r.json();
-      if (!r.ok) throw new Error("analyze_failed");
+
+      if (!r.ok) {
+        console.log("ANALYZE ERROR:", j);
+        throw new Error("analyze_failed");
+      }
 
       setResult(j.result);
     } catch (e) {
@@ -100,7 +140,9 @@ export default function AnalyzeChatPage() {
   };
 
   /**
-   * ✅ FIX หลักอยู่ตรงนี้
+   * ==========================
+   * 💬 CHAT
+   * ==========================
    */
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
@@ -127,12 +169,13 @@ export default function AnalyzeChatPage() {
       });
 
       const j = await r.json();
-      if (!r.ok) throw new Error("chat_failed");
 
-      // ✅ AI ตอบ — แก้แค่บรรทัดนี้
+      if (!r.ok) {
+        console.log("CHAT ERROR:", j);
+        throw new Error("chat_failed");
+      }
+
       setMessages((m) => [...m, { role: "ai", text: j.answer }]);
-
-      // ❌ ห้าม setDisplayedMessages ซ้ำเด็ดขาด
     } catch (e) {
       console.error(e);
     } finally {
@@ -140,32 +183,27 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  const renderAIText = (text: string) => {
-    return text.split("\n").map((line, i) => (
-      <p key={i} className="leading-relaxed text-emerald-100">
-        {line}
-      </p>
-    ));
-  };
-
-  const species = result?.breed_estimate || "-";
-  const group = result?.betta_group || "-";
-  const morphology = result?.morphology || "-";
-  const detail = result?.short_reason || "-";
-
-  let confidence = 0;
-  const rawConfidence =
-    result?.confidence ?? result?.confidence_score ?? 0;
-
-  if (typeof rawConfidence === "number") {
-    if (rawConfidence <= 1) confidence = Math.round(rawConfidence * 100);
-    else if (rawConfidence <= 100) confidence = Math.round(rawConfidence);
-    else confidence = 95;
-  }
-
   return (
-    <main className="relative max-w-3xl mx-auto p-6 text-emerald-50">
-      {/* UI เหมือนเดิมทั้งหมด — ไม่ได้ตัดอะไรออก */}
+    <main className="max-w-3xl mx-auto p-6 text-white">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const f = e.target.files?.[0] || null;
+          setFile(f);
+        }}
+      />
+
+      {preview && (
+        <img
+          src={preview}
+          className="w-full max-h-[320px] object-contain mt-4"
+        />
+      )}
+
+      <button onClick={analyze} disabled={!file || loading}>
+        {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์"}
+      </button>
     </main>
   );
 }
