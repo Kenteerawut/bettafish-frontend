@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_BASE!;
+/**
+ * 🔥 FIX: รองรับทั้งกรณี ENV มี /api หรือไม่มี
+ */
+const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+const API = BASE.endsWith("/api") ? BASE : `${BASE}/api`;
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -30,7 +34,10 @@ export default function AnalyzePage() {
       const fd = new FormData();
       fd.append("image", file);
 
-      const r = await fetch(`${API}/analyze`, {
+      const endpoint = `${API}/analyze`;
+      console.log("🔥 CALL API =", endpoint);
+
+      const r = await fetch(endpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -54,7 +61,6 @@ export default function AnalyzePage() {
 
   return (
     <main className="max-w-3xl mx-auto p-6 text-emerald-50">
-
       <h1 className="text-3xl font-bold mb-6">
         วิเคราะห์สายพันธุ์ปลากัดด้วย AI
       </h1>
@@ -91,7 +97,6 @@ export default function AnalyzePage() {
           <div>⭐ {result?.betta_group}</div>
         </div>
       )}
-
     </main>
   );
 }
