@@ -3,29 +3,41 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-/**
- * 🔥 FIX: รองรับทั้งกรณี ENV มี /api หรือไม่มี
- */
-const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
-const API = BASE.endsWith("/api") ? BASE : `${BASE}/api`;
+const API = process.env.NEXT_PUBLIC_API_BASE;
 
 export default function AnalyzePage() {
   const router = useRouter();
 
+  const [checking, setChecking] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * ✅ AUTH GUARD — กันเด้ง login รัว
+   */
   useEffect(() => {
     const t = localStorage.getItem("token");
-    if (!t) router.replace("/login");
-    setToken(t);
-  }, [router]);
 
+    if (!t) {
+      router.replace("/login");
+      return;
+    }
+
+    setToken(t);
+    setChecking(false);
+  }, []);
+
+  /**
+   * ✅ ANALYZE FUNCTION
+   */
   const analyze = async () => {
-    if (!file || !token) return;
+    if (!file || !token || !API) {
+      console.log("Missing file/token/API");
+      return;
+    }
 
     setLoading(true);
     setResult(null);
@@ -34,10 +46,7 @@ export default function AnalyzePage() {
       const fd = new FormData();
       fd.append("image", file);
 
-      const endpoint = `${API}/analyze`;
-      console.log("🔥 CALL API =", endpoint);
-
-      const r = await fetch(endpoint, {
+      const res = await fetch(`${API}/analyze`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -45,12 +54,14 @@ export default function AnalyzePage() {
         body: fd,
       });
 
-      const j = await r.json();
-      console.log("ANALYZE RESULT =", j);
+      const data = await res.json();
+      console.log("ANALYZE RESULT =", data);
 
-      if (!r.ok) throw new Error("analyze_failed");
+      if (!res.ok) {
+        throw new Error("analyze_failed");
+      }
 
-      setResult(j.result);
+      setResult(data.result);
     } catch (err) {
       console.error(err);
       alert("วิเคราะห์ไม่สำเร็จ");
@@ -59,8 +70,14 @@ export default function AnalyzePage() {
     }
   };
 
+  /**
+   * ✅ รอเช็ค token ก่อน render
+   */
+  if (checking) return null;
+
   return (
     <main className="max-w-3xl mx-auto p-6 text-emerald-50">
+
       <h1 className="text-3xl font-bold mb-6">
         วิเคราะห์สายพันธุ์ปลากัดด้วย AI
       </h1>
@@ -97,6 +114,7 @@ export default function AnalyzePage() {
           <div>⭐ {result?.betta_group}</div>
         </div>
       )}
+
     </main>
   );
 }
