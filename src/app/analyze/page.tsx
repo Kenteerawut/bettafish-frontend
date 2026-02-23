@@ -79,6 +79,7 @@ export default function AnalyzePage() {
 
       <button
         onClick={analyze}
+        disabled={!file || loading}
         className="px-6 py-3 bg-emerald-400 text-black rounded-xl"
       >
         {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์"}
