@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
+// 🔥 เอา /api ออกเพื่อให้ path รูปถูกต้อง
+const ASSET = API.replace("/api", "");
+
 export default function RecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
 
@@ -23,7 +26,6 @@ export default function RecordsPage() {
 
         console.log("📦 RECORD DATA =", j);
 
-        // backend ส่ง array ตรง ๆ
         setRecords(Array.isArray(j) ? j : j.records || []);
       } catch (e) {
         console.error(e);
@@ -36,7 +38,6 @@ export default function RecordsPage() {
   return (
     <main className="relative max-w-6xl mx-auto p-6 text-emerald-50">
 
-      {/* 🌫️ BACKGROUND GLOW */}
       <div className="absolute inset-0 -z-20
         bg-[radial-gradient(circle_at_15%_20%,rgba(16,185,129,0.25),transparent_40%)]
         bg-[radial-gradient(circle_at_85%_70%,rgba(34,211,238,0.15),transparent_50%)]
@@ -67,10 +68,10 @@ export default function RecordsPage() {
         <div className="grid md:grid-cols-2 gap-5">
           {records.map((item) => {
 
-            // ⭐ FIX จริง — ใช้ imageName แทน imageUrl
+            // ✅ FIX จริง — ใช้ ASSET แทน API
             const imageSrc =
               item.imageName
-                ? `${API}/uploads/${item.imageName}`
+                ? `${ASSET}/uploads/${item.imageName}`
                 : null;
 
             return (
