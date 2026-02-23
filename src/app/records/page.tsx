@@ -21,10 +21,9 @@ export default function RecordsPage() {
 
         const j = await r.json();
 
-        // 🔥 DEBUG ดูข้อมูลจริงจาก backend
         console.log("📦 RECORD DATA =", j);
 
-        // ✅ FIX — backend ส่ง array ตรง ๆ
+        // backend ส่ง array ตรง ๆ
         setRecords(Array.isArray(j) ? j : j.records || []);
       } catch (e) {
         console.error(e);
@@ -59,49 +58,61 @@ export default function RecordsPage() {
           🐟 ประวัติการวิเคราะห์ปลา
         </h1>
 
-        {/* ⭐ ถ้ายังไม่มีข้อมูล */}
         {records.length === 0 && (
           <div className="text-emerald-300/60">
             ยังไม่มีประวัติการวิเคราะห์
           </div>
         )}
 
-        {/* GRID */}
         <div className="grid md:grid-cols-2 gap-5">
-          {records.map((item) => (
-            <div
-              key={item._id}
-              className="
-              rounded-2xl overflow-hidden
-              bg-emerald-900/20
-              border border-emerald-400/10
-              hover:scale-[1.02]
-              transition-all
-              "
-            >
-              {/* ✅ กัน imageUrl ว่าง */}
-              {item.imageUrl && (
-                <img
-                  src={`${API}${item.imageUrl}`}
-                  className="w-full h-[220px] object-cover"
-                />
-              )}
+          {records.map((item) => {
 
-              <div className="p-4 space-y-2 text-sm">
-                <div className="text-emerald-200 font-semibold">
-                  {item.fishName || "ไม่ระบุชื่อปลา"}
-                </div>
+            // ⭐ FIX จริง — ใช้ imageName แทน imageUrl
+            const imageSrc =
+              item.imageName
+                ? `${API}/uploads/${item.imageName}`
+                : null;
 
-                <div className="text-emerald-300/70">
-                  {item.type || "ไม่ระบุสายพันธุ์"}
-                </div>
+            return (
+              <div
+                key={item._id}
+                className="
+                rounded-2xl overflow-hidden
+                bg-emerald-900/20
+                border border-emerald-400/10
+                hover:scale-[1.02]
+                transition-all
+                "
+              >
+                {imageSrc && (
+                  <img
+                    src={imageSrc}
+                    className="w-full h-[220px] object-cover"
+                    onError={(e) => {
+                      console.log("❌ IMAGE LOAD FAIL:", imageSrc);
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                )}
 
-                <div className="text-xs text-emerald-400/50">
-                  {new Date(item.createdAt).toLocaleString()}
+                <div className="p-4 space-y-2 text-sm">
+                  <div className="text-emerald-200 font-semibold">
+                    {item.fishName || "ไม่ระบุชื่อปลา"}
+                  </div>
+
+                  <div className="text-emerald-300/70">
+                    {item.type || "ไม่ระบุสายพันธุ์"}
+                  </div>
+
+                  <div className="text-xs text-emerald-400/50">
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleString()
+                      : "-"}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </main>

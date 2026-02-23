@@ -142,9 +142,7 @@ export default function AnalyzeChatPage() {
 
   let confidence = 0;
   const rawConfidence =
-    result?.confidence ??
-    result?.confidence_score ??
-    0;
+    result?.confidence ?? result?.confidence_score ?? 0;
 
   if (typeof rawConfidence === "number") {
     if (rawConfidence <= 1) confidence = Math.round(rawConfidence * 100);
@@ -242,37 +240,39 @@ export default function AnalyzeChatPage() {
               </div>
             </div>
 
-            {/* CHAT */}
-            <div className="space-y-3 mb-4 max-h-[340px] overflow-y-auto pr-1">
-              {displayedMessages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`p-4 rounded-2xl text-sm ${
-                    m.role === "user"
-                      ? "bg-emerald-400 text-black ml-auto w-fit max-w-[85%]"
-                      : "bg-emerald-900/30 border border-emerald-400/10 w-fit max-w-[85%]"
-                  }`}
-                >
-                  {m.role === "ai"
-                    ? renderAIText(m.text)
-                    : m.text}
-                </div>
-              ))}
-
-              {chatLoading && (
-                <div className="text-sm text-emerald-300 animate-pulse">
-                  🌿 AI กำลังตอบ...
-                </div>
-              )}
-
-              <div ref={chatEndRef} />
+            {/* 🤖 WHITE AI GLOW INFO */}
+            <div
+              className="
+              mb-3
+              rounded-2xl
+              border border-emerald-400/20
+              bg-emerald-950/40
+              backdrop-blur-xl
+              px-4 py-3
+              text-xs
+              text-white/90
+              leading-relaxed
+              shadow-[0_0_35px_rgba(16,185,129,0.25)]
+              animate-[pulse_6s_ease-in-out_infinite]
+            "
+            >
+              <div className="flex items-start gap-2">
+                <span className="text-white text-sm drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]">
+                  🧠
+                </span>
+                <p>
+                  สามารถพิมพ์ลักษณะเพิ่มเติมของปลากัด เช่น สี ลักษณะครีบ หรือพฤติกรรม
+                  เพื่อช่วยให้ AI วิเคราะห์สายพันธุ์ได้แม่นยำมากขึ้น
+                  เนื่องจากระบบต้องการข้อมูลมากกว่าภาพเพียง 1 รูป
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="ถามเกี่ยวกับปลากัด..."
+                placeholder="พิมพ์ข้อมูลเพิ่มเติมเพื่อเพิ่มความแม่นยำ..."
                 className="
                 flex-1 rounded-xl px-3 py-2 text-sm
                 bg-black/40 border border-emerald-400/20
