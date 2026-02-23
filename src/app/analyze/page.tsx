@@ -3,21 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_BASE;
+const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 export default function AnalyzePage() {
   const router = useRouter();
 
-  const [checking, setChecking] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  /**
-   * ✅ AUTH GUARD — กันเด้ง login รัว
-   */
   useEffect(() => {
     const t = localStorage.getItem("token");
 
@@ -27,17 +23,10 @@ export default function AnalyzePage() {
     }
 
     setToken(t);
-    setChecking(false);
-  }, []);
+  }, [router]);
 
-  /**
-   * ✅ ANALYZE FUNCTION
-   */
   const analyze = async () => {
-    if (!file || !token || !API) {
-      console.log("Missing file/token/API");
-      return;
-    }
+    if (!file || !token) return;
 
     setLoading(true);
     setResult(null);
@@ -57,9 +46,7 @@ export default function AnalyzePage() {
       const data = await res.json();
       console.log("ANALYZE RESULT =", data);
 
-      if (!res.ok) {
-        throw new Error("analyze_failed");
-      }
+      if (!res.ok) throw new Error("analyze_failed");
 
       setResult(data.result);
     } catch (err) {
@@ -70,14 +57,8 @@ export default function AnalyzePage() {
     }
   };
 
-  /**
-   * ✅ รอเช็ค token ก่อน render
-   */
-  if (checking) return null;
-
   return (
     <main className="max-w-3xl mx-auto p-6 text-emerald-50">
-
       <h1 className="text-3xl font-bold mb-6">
         วิเคราะห์สายพันธุ์ปลากัดด้วย AI
       </h1>
@@ -102,7 +83,6 @@ export default function AnalyzePage() {
 
       <button
         onClick={analyze}
-        disabled={!file || loading}
         className="px-6 py-3 bg-emerald-400 text-black rounded-xl"
       >
         {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์"}
@@ -114,7 +94,6 @@ export default function AnalyzePage() {
           <div>⭐ {result?.betta_group}</div>
         </div>
       )}
-
     </main>
   );
 }
