@@ -3,10 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-/**
- * 🔥 HOTFIX PRODUCTION
- * ห้ามใช้ env ตอนนี้ เพราะ build ไปแล้ว
- */
 const API = "https://betta-backend-production.up.railway.app/api";
 
 type Msg = {
@@ -31,13 +27,6 @@ export default function AnalyzeChatPage() {
   const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayedMessages, chatLoading]);
-
-  /**
-   * ✅ LOAD TOKEN
-   */
-  useEffect(() => {
     const t = localStorage.getItem("token");
     if (!t) {
       router.replace("/login");
@@ -46,70 +35,21 @@ export default function AnalyzeChatPage() {
     setToken(t);
   }, [router]);
 
-  /**
-   * ✅ PREVIEW IMAGE FIX
-   */
   useEffect(() => {
-    if (!file) {
-      setPreview("");
-      return;
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [displayedMessages, chatLoading]);
 
+  useEffect(() => {
+    if (!file) return;
     const url = URL.createObjectURL(file);
     setPreview(url);
-
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  /**
-   * ✅ TYPEWRITER SAFE
-   */
-  useEffect(() => {
-    const last = messages[messages.length - 1];
-    if (!last) return;
-
-    if (last.role !== "ai") {
-      setDisplayedMessages(messages);
-      return;
-    }
-
-    let i = 0;
-
-    setDisplayedMessages(
-      messages.map((m) => ({
-        ...m,
-        text: m.role === "ai" ? "" : m.text,
-      }))
-    );
-
-    const interval = setInterval(() => {
-      i++;
-      setDisplayedMessages((prev) => {
-        const newArr = [...prev];
-        newArr[newArr.length - 1] = {
-          role: "ai",
-          text: last.text.slice(0, i),
-        };
-        return newArr;
-      });
-
-      if (i >= last.text.length) clearInterval(interval);
-    }, 12);
-
-    return () => clearInterval(interval);
-  }, [messages]);
-
-  /**
-   * ==========================
-   * 🔍 ANALYZE
-   * ==========================
-   */
   const analyze = async () => {
     if (!file || !token) return;
 
     setLoading(true);
-    setMessages([]);
-    setDisplayedMessages([]);
     setResult(null);
 
     try {
@@ -118,18 +58,12 @@ export default function AnalyzeChatPage() {
 
       const r = await fetch(`${API}/analyze`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
 
       const j = await r.json();
-
-      if (!r.ok) {
-        console.log("ANALYZE ERROR:", j);
-        throw new Error("analyze_failed");
-      }
+      if (!r.ok) throw new Error("analyze_failed");
 
       setResult(j.result);
     } catch (e) {
@@ -139,11 +73,6 @@ export default function AnalyzeChatPage() {
     }
   };
 
-  /**
-   * ==========================
-   * 💬 CHAT
-   * ==========================
-   */
   const sendChat = async () => {
     if (!input.trim() || !token || !result) return;
 
@@ -151,8 +80,6 @@ export default function AnalyzeChatPage() {
     setInput("");
 
     setMessages((m) => [...m, { role: "user", text: question }]);
-    setDisplayedMessages((m) => [...m, { role: "user", text: question }]);
-
     setChatLoading(true);
 
     try {
@@ -162,18 +89,11 @@ export default function AnalyzeChatPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          question,
-          context: result,
-        }),
+        body: JSON.stringify({ question, context: result }),
       });
 
       const j = await r.json();
-
-      if (!r.ok) {
-        console.log("CHAT ERROR:", j);
-        throw new Error("chat_failed");
-      }
+      if (!r.ok) throw new Error("chat_failed");
 
       setMessages((m) => [...m, { role: "ai", text: j.answer }]);
     } catch (e) {
@@ -188,10 +108,7 @@ export default function AnalyzeChatPage() {
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => {
-          const f = e.target.files?.[0] || null;
-          setFile(f);
-        }}
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
 
       {preview && (

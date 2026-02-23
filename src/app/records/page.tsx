@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-/**
- * 🔥 HOTFIX PRODUCTION
- * อย่าใช้ env ตอนนี้ เพราะ build ไปแล้ว
- */
 const API = "https://betta-backend-production.up.railway.app/api";
 const ASSET = "https://betta-backend-production.up.railway.app";
 
@@ -25,12 +21,9 @@ export default function RecordsPage() {
         });
 
         const j = await r.json();
-
-        console.log("📦 RECORD DATA =", j);
-
         setRecords(Array.isArray(j) ? j : j.records || []);
       } catch (e) {
-        console.error("LOAD RECORD ERROR:", e);
+        console.error(e);
       }
     };
 
@@ -38,86 +31,45 @@ export default function RecordsPage() {
   }, []);
 
   return (
-    <main className="relative max-w-6xl mx-auto p-6 text-emerald-50">
-      <div className="absolute inset-0 -z-20
-        bg-[radial-gradient(circle_at_15%_20%,rgba(16,185,129,0.25),transparent_40%)]
-        bg-[radial-gradient(circle_at_85%_70%,rgba(34,211,238,0.15),transparent_50%)]
-      " />
+    <main className="max-w-6xl mx-auto p-6 text-emerald-50">
+      <h1 className="text-3xl font-bold mb-6">
+        🐟 ประวัติการวิเคราะห์ปลา
+      </h1>
 
-      <div className="
-        bg-emerald-950/40
-        backdrop-blur-2xl
-        border border-emerald-400/20
-        rounded-[28px]
-        shadow-[0_0_60px_rgba(16,185,129,0.25)]
-        p-6
-      ">
-        <h1 className="
-          text-3xl font-bold mb-6
-          bg-gradient-to-r from-emerald-200 via-teal-300 to-cyan-300
-          bg-clip-text text-transparent
-        ">
-          🐟 ประวัติการวิเคราะห์ปลา
-        </h1>
+      <div className="grid md:grid-cols-2 gap-5">
+        {records.map((item) => {
+          const imageSrc = item.imageName
+            ? `${ASSET}/uploads/${item.imageName}`
+            : null;
 
-        {records.length === 0 && (
-          <div className="text-emerald-300/60">
-            ยังไม่มีประวัติการวิเคราะห์
-          </div>
-        )}
+          return (
+            <div
+              key={item._id}
+              className="rounded-2xl overflow-hidden bg-emerald-900/20 border border-emerald-400/10"
+            >
+              {imageSrc && (
+                <img
+                  src={imageSrc}
+                  className="w-full h-[220px] object-cover"
+                />
+              )}
 
-        <div className="grid md:grid-cols-2 gap-5">
-          {records.map((item) => {
+              <div className="p-4 space-y-2 text-sm">
+                <div className="font-semibold">
+                  {item.fishName || "ไม่ระบุชื่อปลา"}
+                </div>
 
-            /**
-             * ✅ ใช้ backend domain ตรง ๆ
-             */
-            const imageSrc =
-              item.imageName
-                ? `${ASSET}/uploads/${item.imageName}`
-                : null;
+                <div>{item.type || "ไม่ระบุสายพันธุ์"}</div>
 
-            return (
-              <div
-                key={item._id}
-                className="
-                rounded-2xl overflow-hidden
-                bg-emerald-900/20
-                border border-emerald-400/10
-                hover:scale-[1.02]
-                transition-all
-                "
-              >
-                {imageSrc && (
-                  <img
-                    src={imageSrc}
-                    className="w-full h-[220px] object-cover"
-                    onError={(e) => {
-                      console.log("❌ IMAGE LOAD FAIL:", imageSrc);
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                )}
-
-                <div className="p-4 space-y-2 text-sm">
-                  <div className="text-emerald-200 font-semibold">
-                    {item.fishName || "ไม่ระบุชื่อปลา"}
-                  </div>
-
-                  <div className="text-emerald-300/70">
-                    {item.type || "ไม่ระบุสายพันธุ์"}
-                  </div>
-
-                  <div className="text-xs text-emerald-400/50">
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString()
-                      : "-"}
-                  </div>
+                <div className="text-xs opacity-60">
+                  {item.createdAt
+                    ? new Date(item.createdAt).toLocaleString()
+                    : "-"}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </main>
   );
