@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = "https://betta-backend-production.up.railway.app/api";
-const ASSET = "https://betta-backend-production.up.railway.app";
+import { API, ASSET } from "@/lib/apiConfig";
 
 export default function RecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -60,6 +58,12 @@ export default function RecordsPage() {
                 </div>
 
                 <div>{item.type || "ไม่ระบุสายพันธุ์"}</div>
+
+                {item.note && (
+                  <div className="text-emerald-100/80 text-xs">
+                    💬 {item.note}
+                  </div>
+                )}
 
                 <div className="text-xs opacity-60">
                   {item.createdAt

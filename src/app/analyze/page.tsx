@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const API = process.env.NEXT_PUBLIC_API_BASE!;
+import { API, hasApiBase } from "@/lib/apiConfig";
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -13,6 +12,10 @@ export default function AnalyzePage() {
   const [preview, setPreview] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     const t = localStorage.getItem("token");
@@ -28,8 +31,15 @@ export default function AnalyzePage() {
   const analyze = async () => {
     if (!file || !token) return;
 
+    if (!hasApiBase) {
+      alert("ไม่พบ URL ของ API (NEXT_PUBLIC_API_BASE) กรุณาตั้งค่าใน .env.local");
+      return;
+    }
+
     setLoading(true);
     setResult(null);
+    setErrorMsg(null);
+    setAnswer(null);
 
     try {
       const fd = new FormData();
@@ -46,12 +56,20 @@ export default function AnalyzePage() {
       const data = await res.json();
       console.log("ANALYZE RESULT =", data);
 
-      if (!res.ok) throw new Error("analyze_failed");
+      if (!res.ok) {
+        const msg =
+          data?.message ||
+          data?.error ||
+          (res.status === 401 ? "กรุณาเข้าสู่ระบบใหม่" : "วิเคราะห์ไม่สำเร็จ");
+        setErrorMsg(msg);
+        return;
+      }
 
       setResult(data.result);
     } catch (err) {
       console.error(err);
-      alert("วิเคราะห์ไม่สำเร็จ");
+      const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการเชื่อมต่อ";
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -88,10 +106,100 @@ export default function AnalyzePage() {
         {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์"}
       </button>
 
+      {errorMsg && (
+        <div className="mt-4 p-4 bg-red-900/50 text-red-200 rounded-xl">
+          {errorMsg}
+        </div>
+      )}
+
       {result && (
-        <div className="mt-6 space-y-2">
-          <div>🐟 {result?.breed_estimate}</div>
-          <div>⭐ {result?.betta_group}</div>
+        <div className="mt-6 space-y-4">
+          <div className="space-y-3 p-4 rounded-xl bg-emerald-900/20 border border-emerald-400/10">
+            <div>🐟 {result?.breed_estimate || "-"}</div>
+            <div>⭐ {result?.betta_group || "-"}</div>
+            {(result?.short_reason || result?.breed_estimate_th) && (
+              <div className="pt-2 border-t border-emerald-400/20 text-emerald-100/90 text-sm">
+                💬 {result?.short_reason || result?.breed_estimate_th}
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 rounded-xl bg-emerald-900/30 border border-emerald-400/10">
+            <div className="text-sm mb-2 text-emerald-100/90">
+              ถามเพิ่มเติมเกี่ยวกับปลาตัวนี้
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="พิมพ์คำถามเกี่ยวกับปลากัดเช่น การเลี้ยง การผสม หรือสุขภาพ..."
+                className="flex-1 rounded-xl border border-emerald-400/30 bg-emerald-950/60 px-3 py-2 text-sm text-emerald-50 placeholder-emerald-300/60 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+              <button
+                type="button"
+                disabled={chatLoading || !question.trim()}
+                onClick={async () => {
+                  if (!token || !result || !question.trim()) return;
+
+                  if (!hasApiBase) {
+                    alert(
+                      "ไม่พบ URL ของ API (NEXT_PUBLIC_API_BASE) กรุณาตั้งค่าใน .env.local"
+                    );
+                    return;
+                  }
+
+                  try {
+                    setChatLoading(true);
+
+                    const res = await fetch(`${API}/chat`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        question: question.trim(),
+                        context: result,
+                      }),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                      const msg =
+                        data?.message ||
+                        data?.error ||
+                        "ถามคำถามไม่สำเร็จ";
+                      setErrorMsg(msg);
+                      return;
+                    }
+
+                    setAnswer(data.answer || "ไม่มีคำตอบ");
+                    setQuestion("");
+                  } catch (err) {
+                    console.error(err);
+                    const msg =
+                      err instanceof Error
+                        ? err.message
+                        : "เกิดข้อผิดพลาดในการเชื่อมต่อ";
+                    setErrorMsg(msg);
+                  } finally {
+                    setChatLoading(false);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-emerald-400 text-black text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {chatLoading ? "กำลังตอบ..." : "ส่ง"}
+              </button>
+            </div>
+
+            {answer && (
+              <div className="mt-3 text-sm text-emerald-100/90 whitespace-pre-line">
+                💬 {answer}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </main>

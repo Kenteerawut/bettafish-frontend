@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const API = process.env.NEXT_PUBLIC_API_BASE!;
+import { API, hasApiBase } from "@/lib/apiConfig";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -66,8 +65,11 @@ export default function RegisterPage() {
 
       // ไม่ส่ง token → ไป login
       router.replace("/login");
-    } catch {
-      setError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+    } catch (e) {
+      console.error("Register fetch error:", e);
+      setError(
+        "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — ตรวจสอบว่า (1) Backend รันอยู่ (2) NEXT_PUBLIC_API_BASE ใน .env.local ถูกต้อง (เช่น http://localhost:3001)"
+      );
     } finally {
       setLoading(false);
     }
